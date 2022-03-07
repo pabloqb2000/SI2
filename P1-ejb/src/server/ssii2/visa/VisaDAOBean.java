@@ -10,7 +10,7 @@
  *
  */
 
-package ssii2.visa.dao;
+package ssii2.visa;
 import ssii2.visa.TarjetaBean;
 
 
@@ -319,7 +319,7 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
      * @param idComercio
      * @return
      */
-    public ArrayList<PagoBean> getPagos(String idComercio) {
+    public PagoBean[] getPagos(String idComercio) {
 
         PreparedStatement pstmt = null;
         Connection pcon = null;
@@ -383,7 +383,7 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
             }
         }
 
-        return pagos;
+        return ret;
     }
 
     // Borrar los pagos asociados a un comercio
