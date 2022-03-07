@@ -53,8 +53,8 @@ import ssii2.visa.VisaDAOLocal;
  *
  * @author phaya
  */ 
-@EJB(name="VisaDAOBean", beanInterface=VisaDAOLocal.class)
 public class ProcesaPago extends ServletRaiz {
+    @EJB(name="VisaDAOBean", beanInterface=VisaDAOLocal.class)
     private VisaDAOLocal dao;
    
     /** 
