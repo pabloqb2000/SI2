@@ -17,21 +17,19 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import ssii2.visa.PagoBean;
-import ssii2.visa.VisaDAOWSService;
-import ssii2.visa.VisaDAOWS;
-import javax.xml.ws.WebServiceRef;
 
-import ssii2.visa.VisaDAOWSService; // Stub generado automáticamente
-import ssii2.visa.VisaDAOWS; // Stub generado automáticamente
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.WebServiceRef;
+// Nuevos imports
+import javax.ejb.EJB;
+import ssii2.visa.VisaDAOLocal;
 
 
 /**
  *
  * @author phaya
  */
+@EJB(name="VisaDAOBean", beanInterface=VisaDAOLocal.class)
 public class DelPagos extends ServletRaiz {
+    private VisaDAOLocal dao;
      
     /** 
      * Par&aacute;metro que indica el identificador de comercio
@@ -55,23 +53,6 @@ public class DelPagos extends ServletRaiz {
     */    
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {        
-
-        VisaDAOWSService service;
-        VisaDAOWS dao;
-        // Nueva instanciacion
-        try {
-            service = new VisaDAOWSService();
-            dao = service.getVisaDAOWSPort();
-
-            BindingProvider bp = (BindingProvider) dao;
-		    bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, getServletContext().getInitParameter("webmaster"));
-		
-        } catch (Exception e) {
-            // En caso de que ocurra algun error lo enviamos
-            enviaError(e, request, response);
-            return;
-        }
-
 		/* Se recoge de la petici&oacute;n el par&aacute;metro idComercio*/  
 		String idComercio = request.getParameter(PARAM_ID_COMERCIO);
 		

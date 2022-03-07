@@ -46,17 +46,16 @@ import javax.servlet.http.HttpSession;
 import ssii2.visa.*;
 
 // Nuevos imports
-import ssii2.visa.VisaDAOWSService; // Stub generado automáticamente
-import ssii2.visa.VisaDAOWS; // Stub generado automáticamente
-import javax.xml.ws.WebServiceRef;
-import javax.xml.ws.BindingProvider;
+import javax.ejb.EJB;
+import ssii2.visa.VisaDAOLocal;
 
 /**
  *
  * @author phaya
  */ 
+@EJB(name="VisaDAOBean", beanInterface=VisaDAOLocal.class)
 public class ProcesaPago extends ServletRaiz {
-
+    private VisaDAOLocal dao;
    
     /** 
      * Par&aacute;metro que indica el identificador de transacci&oacute;n
@@ -145,8 +144,6 @@ private void printAddresses(HttpServletRequest request, HttpServletResponse resp
         TarjetaBean tarjeta = creaTarjeta(request);            
         ValidadorTarjeta val = new ValidadorTarjeta();                        
         PagoBean pago = null; 
-        VisaDAOWSService service;
-        VisaDAOWS dao;
         
         // printAddresses(request,response);
         if (! val.esValida(tarjeta)) {            
@@ -155,20 +152,6 @@ private void printAddresses(HttpServletRequest request, HttpServletResponse resp
             return;
         }
 
-        // Nueva instanciacion
-        try {
-            service = new VisaDAOWSService();
-            dao = service.getVisaDAOWSPort();
-            
-            BindingProvider bp = (BindingProvider) dao;
-		    bp.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, getServletContext().getInitParameter("VisaDAOWSServiceURL"));
-
-        } catch (Exception e) {
-            // En caso de que ocurra algun error lo enviamos
-            enviaError(e, request, response);
-            return;
-        }
-        
 		HttpSession sesion = request.getSession(false);
 		if (sesion != null) {
 			pago = (PagoBean) sesion.getAttribute(ComienzaPago.ATTR_PAGO);
