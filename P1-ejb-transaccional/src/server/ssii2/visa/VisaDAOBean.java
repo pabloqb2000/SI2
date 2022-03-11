@@ -27,6 +27,7 @@ import javax.jws.WebParam;
 import javax.jws.WebService;
 
 import javax.ejb.Stateless;
+import javax.ejb.EJBException;
 
 
 
@@ -44,6 +45,24 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
      * Utilizar statements preparados o no
      */
     private boolean prepared = true;
+    
+    /* 
+     * Nuevo prepared statement
+     * Obtener el saldo de una tarjeta
+     */
+    private static final String SELECT_SALDO_QRY = 
+        "select saldo from tarjeta " + 
+        "where numeroTarjeta=?";
+
+    /* 
+     * Nuevo prepared statement
+     * Actualizar el saldo de una tarjeta
+     */
+    private static final String UPDATE_SALDO_QRY =
+                    "update tarjeta " + 
+                    "set saldo=? " + 
+                    "where numeroTarjeta=?";
+
     /***********************************************************/
 
     /* Para prepared statements, usamos cadenas constantes
@@ -205,11 +224,12 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
      * @param pago
      * @return
      */
-    public synchronized PagoBean realizaPago(PagoBean pago) {
+    public synchronized PagoBean realizaPago(PagoBean pago) 
+        throws EJBException {
         Connection con = null;
         Statement stmt = null;
         ResultSet rs = null;
-        boolean ret = false;
+        boolean ret = true;
         String codRespuesta = "999"; // En principio, denegado
 
         // TODO: Utilizar en funcion de isPrepared()
@@ -219,6 +239,7 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
         // Comprobar id.transaccion - si no existe,
         // es que la tarjeta no fue comprobada
         if (pago.getIdTransaccion() == null) {
+            errorLog("Id de transaccion inexistente");
             return null;
         }
 
@@ -227,6 +248,36 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
 
             // Obtener conexion
             con = getConnection();
+
+            // Comprobar saldo
+            String select1 = SELECT_SALDO_QRY;
+            errorLog(select1);
+            pstmt = con.prepareStatement(select1);
+            pstmt.setString(1, pago.getTarjeta().getNumero());
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                double saldo = rs.getDouble("saldo");
+                if(saldo >= pago.getImporte()) {
+                    saldo -= pago.getImporte();
+                    String update = UPDATE_SALDO_QRY;
+                    errorLog(update);
+                    pstmt = con.prepareStatement(update);
+                    pstmt.setDouble(1, saldo);
+                    pstmt.setString(2, pago.getTarjeta().getNumero());
+                    
+                    if (pstmt.execute()
+                            || pstmt.getUpdateCount() != 1) {
+                        throw new EJBException("Saldo no actualizado");
+                    }
+                } else {
+                    pago.setIdAutorizacion(null);
+                    errorLog("Saldo insuficiente");
+                    return null;
+                }
+            } else {
+                throw new EJBException("Saldo no actualizado");
+            }
 
             // Insertar en la base de datos el pago
 
@@ -241,10 +292,9 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
                pstmt.setDouble(2, pago.getImporte());
                pstmt.setString(3, pago.getIdComercio());
                pstmt.setString(4, pago.getTarjeta().getNumero());
-               ret = false;
-               if (!pstmt.execute()
-                       && pstmt.getUpdateCount() == 1) {
-                 ret = true;
+               if (pstmt.execute()
+                       || pstmt.getUpdateCount() != 1) {
+                    throw new EJBException("Pago no insertado");
                }
 
             } else {            
@@ -252,44 +302,40 @@ public class VisaDAOBean extends DBTester implements VisaDAOLocal {
             stmt = con.createStatement();
             String insert = getQryInsertPago(pago);
             errorLog(insert);
-            ret = false;
-            if (!stmt.execute(insert)
-                    && stmt.getUpdateCount() == 1) {
-                ret = true;
+            if (stmt.execute(insert)
+                    || stmt.getUpdateCount() != 1) {
+                throw new EJBException("Saldo no actualizado");
 			}
             }/****************/
 
             // Obtener id.autorizacion
-            if (ret) {                
 
-                /* TODO Permitir usar prepared statement si
-                 * isPrepared() = true */
-                /**************************************************/
-                if (isPrepared() == true) {
-                    String select = SELECT_PAGO_TRANSACCION_QRY;
-                    errorLog(select);
-                    pstmt = con.prepareStatement(select);
-                    pstmt.setString(1, pago.getIdTransaccion());
-                    pstmt.setString(2, pago.getIdComercio());
-                    rs = pstmt.executeQuery();
-                } else {
-                /**************************************************/
+            /* TODO Permitir usar prepared statement si
+                * isPrepared() = true */
+            /**************************************************/
+            if (isPrepared() == true) {
+                String select = SELECT_PAGO_TRANSACCION_QRY;
+                errorLog(select);
+                pstmt = con.prepareStatement(select);
+                pstmt.setString(1, pago.getIdTransaccion());
+                pstmt.setString(2, pago.getIdComercio());
+                rs = pstmt.executeQuery();
+            } else {
+            /**************************************************/
 
-                    String select = getQryBuscaPagoTransaccion(pago);
-                    errorLog(select);
-                    rs = stmt.executeQuery(select);
-                    
-                }/*************************************/
-                if (rs.next()) {
-                    pago.setIdAutorizacion(String.valueOf(rs.getInt("idAutorizacion")));
-                    pago.setCodRespuesta(rs.getString("codRespuesta"));
-                } else {
-                    ret = false;
-                }
-
+                String select = getQryBuscaPagoTransaccion(pago);
+                errorLog(select);
+                rs = stmt.executeQuery(select);
+                
+            }/*************************************/
+            if (rs.next()) {
+                pago.setIdAutorizacion(String.valueOf(rs.getInt("idAutorizacion")));
+                pago.setCodRespuesta(rs.getString("codRespuesta"));
+            } else {
+                throw new EJBException("Saldo no actualizado");
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             errorLog(e.toString());
             ret = false;
         } finally {
