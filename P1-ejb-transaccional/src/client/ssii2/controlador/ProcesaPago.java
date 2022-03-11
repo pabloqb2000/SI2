@@ -43,6 +43,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.stream.events.EndDocument;
+
 import ssii2.visa.*;
 
 // Nuevos imports
@@ -170,13 +172,15 @@ private void printAddresses(HttpServletRequest request, HttpServletResponse resp
         // Almacenamos la tarjeta en el pago
         pago.setTarjeta(tarjeta);
 		
-        if (! dao.compruebaTarjeta(tarjeta)) {           
+        if (!dao.compruebaTarjeta(tarjeta)) {           
             enviaError(new Exception("Tarjeta no autorizada:"), request, response);
             return;
         }
 
         try{
-            pago = dao.realizaPago(pago);
+            if(dao.realizaPago(pago) == null){
+                enviaError(new Exception("Pago incorrecto"), request, response);
+            }
         } catch(EJBException e) {         
             if (sesion != null) sesion.invalidate();
             enviaError(new Exception(e.getMessage()), request, response);
