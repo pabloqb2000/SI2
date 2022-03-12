@@ -52,7 +52,7 @@ public class VisaCancelacionJMSBean extends DBTester implements MessageListener 
               msg = (TextMessage) inMessage;
               logger.info("MESSAGE BEAN: Message received: " + msg.getText());
 
-              int idAutorizacion =  Integer.parseInt(msg.getText);
+              int idAutorizacion =  Integer.parseInt(msg.getText());
 
               con = getConnection();
 
