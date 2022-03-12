@@ -59,7 +59,7 @@ public class VisaQueueMessageProducer {
     }
 
     public static void main(String[] args) {
-        java.sql.Connection connection = null;
+        Connection connection = null;
         Session session = null;
         MessageProducer messageProducer = null;
         TextMessage message = null;
