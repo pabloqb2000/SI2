@@ -29,6 +29,7 @@ public class VisaCancelacionJMSBean extends DBTester implements MessageListener 
   @Resource
   private MessageDrivenContext mdc;
 
+  private static final String GET_CODE_RESP_QRY =  "select codRespuesta from pago where idautorizacion=?";
   private static final String UPDATE_CANCELA_QRY = "update pago set codRespuesta=999 where idautorizacion=?";
   private static final String UPDATE_SALDO = "update tarjeta set saldo=saldo+(select importe from pago where idautorizacion=?)" +
                                               " where numerotarjeta=(select numerotarjeta form pago where idautorizacion=?)";
