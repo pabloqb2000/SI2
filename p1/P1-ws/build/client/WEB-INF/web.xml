@@ -27,7 +27,7 @@
     -->
     <context-param>
         <param-name> VisaDAOWSServiceURL</param-name>
-        <param-value>http.10.4.4.1:8080/P1-ws-ws/VisaDAOWSService</param-value>
+        <param-value>http://10.4.4.1:8080/P1-ws-ws/VisaDAOWSService</param-value>
     </context-param>
 
     <!-- Definición de cada uno de los Servlet que componen la aplicación
