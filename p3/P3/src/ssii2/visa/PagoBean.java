@@ -24,6 +24,37 @@ public class PagoBean {
         private String codRespuesta;    
         private String idAutorizacion;  
 
+        private String instance;
+        private String ip;
+
+    /**
+     * @param la instancia del servidor que atendio la peticion
+     */
+    public void setInstance(String instance) {
+        this.instance = instance;
+    }
+
+    /**
+     * @return la instancia del servidor que atendio la peticion
+     */
+    public String getInstance() {
+        return this.instance;
+    }
+
+    /**
+     * @param la IP del servidor que atendio la peticion
+     */
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    /**
+     * @return la IP del servidor que atendio la peticion
+     */
+    public String getIp() {
+        return this.ip;
+    }
+
     /**
      * @return el ID de transacci&oacute;n
      */

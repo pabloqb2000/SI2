@@ -208,6 +208,12 @@ private void printAddresses(HttpServletRequest request, HttpServletResponse resp
         PagoBean pago = new PagoBean();
         pago.setIdTransaccion(request.getParameter(PARAM_ID_TRANSACCION));
         pago.setIdComercio(request.getParameter(PARAM_ID_COMERCIO));
+        pago.setInstance(System.getProperty("com.sun.aas.instanceName"));
+        try {
+            pago.setIp(java.net.InetAddress.getLocalHost().getHostAddress());
+        } catch (java.net.UnknownHostException e) {
+            return null;
+        }
 
         double impd=-1.0;
         try {
